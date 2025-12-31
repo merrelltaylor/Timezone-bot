@@ -12,7 +12,7 @@ intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-timezones = {
+timezones_dict = {
     "🇧🇷 São Paulo": "America/Sao_Paulo",
     "🇵🇱 Warsaw": "Europe/Warsaw",
     "🇸🇦 Dammam": "Asia/Riyadh",
@@ -28,7 +28,7 @@ def build_embed():
         timestamp=datetime.utcnow()
     )
 
-    for region, tz in timezones.items():
+    for region, tz in timezones_dict.items():
         now = datetime.now(pytz.timezone(tz))
         star = " ⭐" if 18 <= now.hour <= 23 else ""
         embed.add_field(
