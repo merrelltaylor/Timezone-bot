@@ -10,6 +10,7 @@ from discord import app_commands
 # -----------------------------
 TOKEN = os.getenv("TOKEN")
 CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
+GUILD_ID = int(os.getenv("GUILD_ID"))  # Discord server ID for fast slash command registration
 
 # -----------------------------
 # Discord client
@@ -42,10 +43,10 @@ def build_embed():
 
     target_hour = 3  # target hour (3 AM)
     closest_region = None
-    min_diff = 24  # max possible hour difference
+    min_diff = 24  # max possible difference
 
     current_hours = {}
-    # Step 1: determine which server is closest to 3 AM
+    # Determine server closest to 3 AM
     for region, tz in timezone_dict.items():
         now = datetime.now(pytz.timezone(tz))
         current_hours[region] = now.hour
@@ -54,7 +55,7 @@ def build_embed():
             min_diff = diff
             closest_region = region
 
-    # Step 2: build embed, add ⭐ to closest server
+    # Add fields with ⭐ for closest server
     for region, tz in timezone_dict.items():
         now = datetime.now(pytz.timezone(tz))
         star = " ⭐" if region == closest_region else ""
@@ -73,7 +74,8 @@ def build_embed():
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
-    await tree.sync()
+    guild = discord.Object(id=GUILD_ID)
+    await tree.sync(guild=guild)  # registers slash commands immediately in this guild
     client.loop.create_task(hourly_post())
 
 # -----------------------------
@@ -88,7 +90,7 @@ async def hourly_post():
             await channel.send(embed=build_embed())
         except Exception as e:
             print(f"Error posting embed: {e}")
-        await asyncio.sleep(3600)  # wait 1 hour
+        await asyncio.sleep(3600)  # 1 hour
 
 # -----------------------------
 # Slash command
