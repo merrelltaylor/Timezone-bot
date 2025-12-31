@@ -31,18 +31,6 @@ timezone_dict = {
 }
 
 # -----------------------------
-# Server activity scores (lower = less active)
-# -----------------------------
-server_activity = {
-    "🇧🇷 São Paulo": 20,
-    "🇵🇱 Warsaw": 35,
-    "🇸🇦 Dammam": 15,     # This will get a ⭐
-    "🇸🇬 Singapore": 40,
-    "🇯🇵 Tokyo": 25,
-    "🇦🇺 Sydney": 30,
-}
-
-# -----------------------------
 # Build the embed
 # -----------------------------
 def build_embed():
@@ -52,11 +40,19 @@ def build_embed():
         timestamp=datetime.utcnow()
     )
 
-    min_activity = min(server_activity.values())  # find the least active server
-
+    # Get current hour for each server
+    current_hours = {}
     for region, tz in timezone_dict.items():
         now = datetime.now(pytz.timezone(tz))
-        star = " ⭐" if server_activity[region] == min_activity else ""
+        current_hours[region] = now.hour
+
+    # Find the earliest hour
+    min_hour = min(current_hours.values())
+
+    # Add fields to embed with ⭐ for earliest time
+    for region, tz in timezone_dict.items():
+        now = datetime.now(pytz.timezone(tz))
+        star = " ⭐" if current_hours[region] == min_hour else ""
         embed.add_field(
             name=region,
             value=f"**{now.strftime('%H:%M')}**{star}",
