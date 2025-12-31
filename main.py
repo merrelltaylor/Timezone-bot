@@ -40,19 +40,24 @@ def build_embed():
         timestamp=datetime.utcnow()
     )
 
-    # Get current hour for each server
+    target_hour = 3  # target hour (3 AM)
+    closest_region = None
+    min_diff = 24  # max possible hour difference
+
     current_hours = {}
+    # Step 1: determine which server is closest to 3 AM
     for region, tz in timezone_dict.items():
         now = datetime.now(pytz.timezone(tz))
         current_hours[region] = now.hour
+        diff = abs(now.hour - target_hour)
+        if diff < min_diff:
+            min_diff = diff
+            closest_region = region
 
-    # Find the earliest hour
-    min_hour = min(current_hours.values())
-
-    # Add fields to embed with ⭐ for earliest time
+    # Step 2: build embed, add ⭐ to closest server
     for region, tz in timezone_dict.items():
         now = datetime.now(pytz.timezone(tz))
-        star = " ⭐" if current_hours[region] == min_hour else ""
+        star = " ⭐" if region == closest_region else ""
         embed.add_field(
             name=region,
             value=f"**{now.strftime('%H:%M')}**{star}",
@@ -83,7 +88,7 @@ async def hourly_post():
             await channel.send(embed=build_embed())
         except Exception as e:
             print(f"Error posting embed: {e}")
-        await asyncio.sleep(3600)  # 1 hour
+        await asyncio.sleep(3600)  # wait 1 hour
 
 # -----------------------------
 # Slash command
